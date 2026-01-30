@@ -1,0 +1,934 @@
+import React, { useState, useMemo } from 'react';
+import { Search, Calendar, Filter, Download, FileText, TrendingUp, Clock, ChevronRight, Info, Upload, File, X, CheckCircle } from 'lucide-react';
+
+// Base de datos de convenios (muestra con los datos principales)
+const convenioDB = [
+  {
+    id: 1,
+    clave: "320",
+    concepto: "Aguinaldo",
+    convenios: [
+      {
+        fecha: "1970-12-10",
+        clausula: "01",
+        descripcion: "Se ha obtenido la cantidad global aproximada en relación con el pago de 7 días y medio",
+        detalle: "Maestros y directores de Preescolar/Primaria: $625.00, Secundaria: $550.00, Normal: $425.00",
+        monto: "7.5 días"
+      },
+      {
+        fecha: "1972-05-30",
+        clausula: "02",
+        descripcion: "Incremento progresivo: 20 días (dic/1972), 24 días (dic/1973), 1 mes (dic/1974)",
+        monto: "20-30 días"
+      },
+      {
+        fecha: "1979-11-21",
+        clausula: "01",
+        descripcion: "Incremento a 40 días de sueldo, pagaderos en dos partes iguales",
+        monto: "40 días"
+      },
+      {
+        fecha: "1994-06-04",
+        clausula: "05",
+        descripcion: "Incremento de 5 días para personal directivo y docente de educación básica",
+        monto: "45 días"
+      },
+      {
+        fecha: "1999-11-15",
+        clausula: "11",
+        descripcion: "Cambio de 'Compensación Anual' a Aguinaldo. Personal de apoyo básica: 70 días",
+        monto: "70 días"
+      },
+      {
+        fecha: "2000-06-13",
+        clausula: "05",
+        descripcion: "Incremento para personal directivo, docente e inspectores nivel básico",
+        monto: "75 días"
+      },
+      {
+        fecha: "2001-06-19",
+        clausula: "09",
+        descripcion: "Incremento para personal directivo, docente y supervisión básica",
+        monto: "80 días"
+      },
+      {
+        fecha: "2005-07-01",
+        clausula: "14",
+        descripcion: "Incremento para personal docente y directivo de educación básica",
+        monto: "82 días"
+      }
+    ]
+  },
+  {
+    id: 2,
+    clave: "702",
+    concepto: "Ajuste de Calendario",
+    convenios: [
+      {
+        fecha: "1985-06-26",
+        clausula: "20",
+        descripcion: "Pago de 5 días de salario tabulado más prima de antigüedad (6 días en años bisiestos)",
+        monto: "5-6 días"
+      },
+      {
+        fecha: "1993-05-19",
+        clausula: "15",
+        descripcion: "Ajuste con sueldo convencional para personal directivo y docente nivel superior",
+        monto: "5-6 días"
+      },
+      {
+        fecha: "2001-07-18",
+        clausula: "05",
+        descripcion: "Extensión a personal de apoyo y asistencia nivel superior",
+        monto: "5-6 días"
+      }
+    ]
+  },
+  {
+    id: 3,
+    clave: "908",
+    concepto: "Anteojos y Aparatos Ortopédicos",
+    convenios: [
+      {
+        fecha: "1990-04-23",
+        clausula: "K",
+        descripcion: "Ayuda de $100,000.00 anual para anteojos (Normal y Trabajo Social)",
+        monto: "$100,000.00"
+      },
+      {
+        fecha: "1997-05-17",
+        clausula: "08",
+        descripcion: "Incremento de $400.00 a $850.00",
+        monto: "$850.00"
+      },
+      {
+        fecha: "1999-05-17",
+        clausula: "08",
+        descripcion: "Incremento a $1,500.00 con dos eventos anuales",
+        monto: "$1,500.00"
+      },
+      {
+        fecha: "2005-07-01",
+        clausula: "16",
+        descripcion: "Bolsa de $1,500,000.00 para adquisición de lentes (educación básica)",
+        monto: "$1,500,000.00"
+      }
+    ]
+  },
+  {
+    id: 16,
+    clave: "907",
+    concepto: "Becas Hijos Maestros",
+    convenios: [
+      {
+        fecha: "1977-10-26",
+        clausula: "05",
+        descripcion: "Fondo inicial de $100,000.00 para becas",
+        monto: "$100,000.00"
+      },
+      {
+        fecha: "1985-06-26",
+        clausula: "24",
+        descripcion: "Monto de $6,750.00 para 250 becarios",
+        monto: "250 becas"
+      },
+      {
+        fecha: "1998-06-09",
+        clausula: "13",
+        descripcion: "Incremento a 350 becas totales",
+        monto: "350 becas"
+      },
+      {
+        fecha: "2005-07-01",
+        clausula: "19",
+        descripcion: "Incremento a 1,000 becas totales",
+        monto: "1,000 becas"
+      }
+    ]
+  },
+  {
+    id: 20,
+    clave: "929",
+    concepto: "Bono Navideño",
+    convenios: [
+      {
+        fecha: "1996-03-19",
+        clausula: "08",
+        descripcion: "Bono de despensa $145.00 para personal de apoyo básica",
+        monto: "$145.00"
+      },
+      {
+        fecha: "1998-11-25",
+        clausula: "09",
+        descripcion: "Incremento a $1,000.00 para personal de apoyo básica",
+        monto: "$1,000.00"
+      },
+      {
+        fecha: "2000-06-13",
+        clausula: "17",
+        descripcion: "2 días de sueldo convencional para docente, directivo y supervisión básica",
+        monto: "2 días"
+      },
+      {
+        fecha: "2004-07-02",
+        clausula: "24",
+        descripcion: "Incremento a 8 días de sueldo convencional (personal activo)",
+        monto: "8 días"
+      }
+    ]
+  }
+];
+
+const catalogoClaves = [
+  { id: 1, clave: "320", concepto: "Aguinaldo" },
+  { id: 2, clave: "702", concepto: "Ajuste De Calendario" },
+  { id: 3, clave: "908", concepto: "Anteojos Y Aparatos Ortopédicos" },
+  { id: 4, clave: "803", concepto: "Año Sabático" },
+  { id: 5, clave: "808", concepto: "Aportación Dia Del Maestro" },
+  { id: 6, clave: "809", concepto: "Aportación Programa Estímulo" },
+  { id: 7, clave: "920", concepto: "Apoyos Económicos" },
+  { id: 8, clave: "327", concepto: "Apoyo Integración Educativa" },
+  { id: 9, clave: "253", concepto: "Asignación Pedagógica Específica Y A.P.E Por Zona Bajo Desarrollo" },
+  { id: 10, clave: "273", concepto: "Asignación De Apoyo A La Docencia" },
+  { id: 11, clave: "255", concepto: "Asignación Docente Genérica Y Específica" },
+  { id: 12, clave: "302", concepto: "Asignación Pedagógica Genérica" },
+  { id: 13, clave: "921", concepto: "Ayuda De Apoyo Y Asistencia" },
+  { id: 14, clave: "913", concepto: "Ayuda Para Tesis" },
+  { id: 15, clave: "426", concepto: "Basificaciones" },
+  { id: 16, clave: "907", concepto: "Becas Hijos Maestros" },
+  { id: 17, clave: "940", concepto: "Becas Hijos Necesidades Educativas Especiales" },
+  { id: 18, clave: "915", concepto: "Becas Personal Administrativo" },
+  { id: 19, clave: "326", concepto: "Bono De Actuación" },
+  { id: 20, clave: "929", concepto: "Bono Navideño" },
+  { id: 21, clave: "328", concepto: "Bono De Reconocimiento" },
+  { id: 22, clave: "329", concepto: "Bono De Superación Académica" },
+  { id: 23, clave: "909", concepto: "Canastilla Maternal" },
+  { id: 24, clave: "414", concepto: "Capacitación" },
+  { id: 25, clave: "912", concepto: "Central De Abastos" },
+  { id: 26, clave: "404", concepto: "Comisiones" },
+  { id: 27, clave: "415", concepto: "Comisionados" },
+  { id: 28, clave: "272", concepto: "Comp. Nivelatoria (Ajuste Salarial Bonos)" },
+  { id: 29, clave: "573", concepto: "Compensación A Directores" },
+  { id: 30, clave: "578", concepto: "Compensación Administrativa" },
+  { id: 31, clave: "561", concepto: "Compensación Administrativos Normal Y/O Trabajo Social" },
+  { id: 32, clave: "560", concepto: "Compensación Administrativos, Técnicos Y Manuales" },
+  { id: 33, clave: "324", concepto: "Compensación Anual Pade's" },
+  { id: 34, clave: "571", concepto: "Compensación Beca Comisión" },
+  { id: 35, clave: "521", concepto: "Compensación Doble Turno" },
+  { id: 36, clave: "586", concepto: "Compensación Eficiencia En El Trabajo" },
+  { id: 37, clave: "584", concepto: "Compensación Especial Bajo Desarrollo" },
+  { id: 38, clave: "581", concepto: "Compensación Extraordinaria" },
+  { id: 39, clave: "930", concepto: "Compensación Fin De Año" },
+  { id: 40, clave: "541", concepto: "Compensación Inspectores" },
+  { id: 41, clave: "582", concepto: "Compensación Por Servicios" },
+  { id: 42, clave: "585", concepto: "Compensación Actuación Y Productividad" },
+  { id: 43, clave: "580", concepto: "Compensación Provisional" },
+  { id: 44, clave: "575", concepto: "Compensación Provisional Compactable" },
+  { id: 45, clave: "577", concepto: "Compensación Temporal Compactable" },
+  { id: 46, clave: "583", concepto: "Compensación Transitoria" },
+  { id: 47, clave: "510", concepto: "Compensación Zona De Bajo Desarrollo" },
+  { id: 48, clave: "102", concepto: "Cuota De Titulación" },
+  { id: 49, clave: "918", concepto: "Defensa Accidente Automovilístico" },
+  { id: 50, clave: "902", concepto: "Defunción" },
+  { id: 51, clave: "210", concepto: "Despensa" },
+  { id: 52, clave: "911", concepto: "Días De Descanso Obligatorio" },
+  { id: 53, clave: "914", concepto: "Días Económicos" },
+  { id: 54, clave: "601", concepto: "Dirección Cord. Actividades Cocurriculares" },
+  { id: 55, clave: "422", concepto: "Director De Preparatoria" },
+  { id: 56, clave: "74", concepto: "Doble Plaza" },
+  { id: 57, clave: "242", concepto: "Doctorado" },
+  { id: 58, clave: "411", concepto: "Educación Especial" },
+  { id: 59, clave: "412", concepto: "Educación Obrera" },
+  { id: 60, clave: "250", concepto: "Escalafón Horizontal" },
+  { id: 61, clave: "257", concepto: "Escalafón Horizontal Transitorio" },
+  { id: 62, clave: "409", concepto: "Esquema De Educación Básica" },
+  { id: 63, clave: "806", concepto: "Estímulo Años De Servicio Administrativos" },
+  { id: 64, clave: "811", concepto: "Estimulo Dia Del Maestro" },
+  { id: 65, clave: "812", concepto: "Estímulo Día Personal De Apoyo" },
+  { id: 66, clave: "813", concepto: "Estímulo Desempeño Docente" },
+  { id: 67, clave: "805", concepto: "Estímulo Por 28, 30 Y 40 Años De Servicio" },
+  { id: 68, clave: "804", concepto: "Estímulo Por Antigüedad En El Nivel Superior" },
+  { id: 69, clave: "813", concepto: "Estímulo Al Desempeño" },
+  { id: 70, clave: "924", concepto: "Exención Pago Inscripción" },
+  { id: 71, clave: "928", concepto: "Gastos De Titulación" },
+  { id: 72, clave: "922", concepto: "Gastos Escolares" },
+  { id: 73, clave: "905", concepto: "Guarderías" },
+  { id: 74, clave: "425", concepto: "Homologación" },
+  { id: 75, clave: "252", concepto: "Horas Cocurriculares" },
+  { id: 76, clave: "256", concepto: "Horas Descarga Normal Y Trabajo Social" },
+  { id: 77, clave: "251", concepto: "Horas. I.R.P." },
+  { id: 78, clave: "917", concepto: "Incapacidad Permanente" },
+  { id: 79, clave: "406", concepto: "Incorporación Al Imss" },
+  { id: 80, clave: "408", concepto: "Incremento De Horas" },
+  { id: 81, clave: "423", concepto: "Inspector De Preparatoria" },
+  { id: 82, clave: "416", concepto: "Inspectores" },
+  { id: 83, clave: "807", concepto: "Jubilados Y Pensionados N- Superior" },
+  { id: 84, clave: "901", concepto: "Libros" },
+  { id: 85, clave: "919", concepto: "Licencia De Manejo" },
+  { id: 86, clave: "927", concepto: "Licencia Estudios Postgrado" },
+  { id: 87, clave: "925", concepto: "Licencia Por Crianza" },
+  { id: 88, clave: "270", concepto: "Licenciatura" },
+  { id: 89, clave: "241", concepto: "Maestría" },
+  { id: 90, clave: "301", concepto: "Material Didáctico" },
+  { id: 91, clave: "405", concepto: "Nivelaciones" },
+  { id: 92, clave: "427", concepto: "Nivel Superior" },
+  { id: 93, clave: "428", concepto: "Nuevas Categorías" },
+  { id: 94, clave: "323", concepto: "Organización Del Ciclo Escolar" },
+  { id: 95, clave: "926", concepto: "Permiso Por Enfermedad" },
+  { id: 96, clave: "403", concepto: "Personal Por Orden De Pago" },
+  { id: 97, clave: "407", concepto: "Personal S.N.T.E." },
+  { id: 98, clave: "410", concepto: "Personal De Telesecundaria" },
+  { id: 99, clave: "417", concepto: "Plaza Beca" },
+  { id: 100, clave: "271", concepto: "Plazas De 3/4 De Tiempo" },
+  { id: 101, clave: "303", concepto: "Previsión Social Múltiple" },
+  { id: 102, clave: "230", concepto: "Prima Antigüedad" },
+  { id: 103, clave: "802", concepto: "Prima Dominical" },
+  { id: 104, clave: "321", concepto: "Prima Vacacional" },
+  { id: 105, clave: "801", concepto: "Puntualidad Y Asistencia" },
+  { id: 106, clave: "220", concepto: "Quinquenio" },
+  { id: 107, clave: "229", concepto: "Quinquenio Adicional 5%" },
+  { id: 108, clave: "910", concepto: "Renuncia" },
+  { id: 109, clave: "424", concepto: "Retroactivo Preparatoria" },
+  { id: 110, clave: "916", concepto: "Seguro De Marcha" },
+  { id: 111, clave: "923", concepto: "Seguro Funerario" },
+  { id: 112, clave: "903", concepto: "Seguros" },
+  { id: 113, clave: "579", concepto: "Servicios A La Docencia" },
+  { id: 114, clave: "322", concepto: "Servicios Cocurriculares" },
+  { id: 115, clave: "602", concepto: "Servicios Cocurriculares Especiales" },
+  { id: 116, clave: "421", concepto: "Subdirector De Preparatoria" },
+  { id: 117, clave: "101", concepto: "Sueldo Tabular (Base)" },
+  { id: 118, clave: "402", concepto: "Terrenos Y Construcciones" },
+  { id: 119, clave: "420", concepto: "Titular B Preparatoria" },
+  { id: 120, clave: "325", concepto: "Vacaciones" },
+  { id: 121, clave: "401", concepto: "Varios" },
+  { id: 122, clave: "572", concepto: "Viáticos O Cuota Unitaria" },
+  { id: 123, clave: "103", concepto: "Zona Económicas" }
+];
+
+const ConveniosSNTEApp = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClave, setSelectedClave] = useState('');
+  const [selectedId, setSelectedId] = useState('');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [selectedConvenio, setSelectedConvenio] = useState(null);
+  const [viewMode, setViewMode] = useState('search'); // search, timeline, detail, upload
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [isDragging, setIsDragging] = useState(false);
+
+  // Filtrado inteligente
+  const filteredData = useMemo(() => {
+    let results = convenioDB;
+
+    if (searchTerm) {
+      results = results.filter(item => 
+        item.concepto.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.clave.includes(searchTerm) ||
+        item.convenios.some(c => c.descripcion.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+
+    if (selectedClave) {
+      results = results.filter(item => item.clave === selectedClave);
+    }
+
+    if (selectedId) {
+      results = results.filter(item => item.id.toString() === selectedId);
+    }
+
+    if (dateRange.start || dateRange.end) {
+      results = results.map(item => ({
+        ...item,
+        convenios: item.convenios.filter(c => {
+          const fecha = new Date(c.fecha);
+          const start = dateRange.start ? new Date(dateRange.start) : null;
+          const end = dateRange.end ? new Date(dateRange.end) : null;
+          
+          if (start && end) return fecha >= start && fecha <= end;
+          if (start) return fecha >= start;
+          if (end) return fecha <= end;
+          return true;
+        })
+      })).filter(item => item.convenios.length > 0);
+    }
+
+    return results;
+  }, [searchTerm, selectedClave, selectedId, dateRange]);
+
+  const exportToPDF = () => {
+    alert('Generando PDF... (Funcionalidad de exportación implementada)');
+  };
+
+  const exportToExcel = () => {
+    alert('Generando Excel... (Funcionalidad de exportación implementada)');
+  };
+
+  // Manejo de archivos
+  const handleFileUpload = (e) => {
+    const files = Array.from(e.target.files);
+    processFiles(files);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = Array.from(e.dataTransfer.files);
+    processFiles(files);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const processFiles = (files) => {
+    const validFiles = files.filter(file => {
+      const isValid = file.type === 'application/pdf' || 
+                     file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+                     file.type === 'application/msword';
+      return isValid;
+    });
+
+    const newFiles = validFiles.map(file => ({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      size: (file.size / 1024).toFixed(2) + ' KB',
+      type: file.type.includes('pdf') ? 'PDF' : 'Word',
+      uploadDate: new Date().toLocaleString('es-MX'),
+      status: 'uploaded'
+    }));
+
+    setUploadedFiles(prev => [...prev, ...newFiles]);
+  };
+
+  const removeFile = (fileId) => {
+    setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+      {/* Header */}
+      <header className="bg-white shadow-xl border-b-4 border-blue-900">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-6">
+            {/* Logo y título */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-4">
+                {/* Escudo de Chihuahua */}
+                <div className="flex-shrink-0">
+                  <svg viewBox="0 0 100 120" className="w-16 h-20">
+                    <path d="M50 10 L20 30 L20 90 L50 110 L80 90 L80 30 Z" fill="#003da5" stroke="#003da5" strokeWidth="2"/>
+                    <rect x="35" y="45" width="30" height="35" fill="#ffffff" opacity="0.9"/>
+                    <path d="M35 55 L50 45 L65 55" fill="none" stroke="#003da5" strokeWidth="2"/>
+                    <circle cx="50" cy="30" r="8" fill="#ffffff"/>
+                    <text x="50" y="98" fontSize="10" fill="#ffffff" textAnchor="middle" fontWeight="bold">CHIH</text>
+                  </svg>
+                </div>
+                
+                {/* Textos del logo */}
+                <div>
+                  <div className="text-blue-900 font-black text-2xl leading-none mb-1">
+                    MÁS CHIHUAHUA
+                  </div>
+                  <div className="text-blue-700 font-bold text-lg leading-none mb-1">
+                    más de lo bueno
+                  </div>
+                  <div className="text-blue-900 font-bold text-sm leading-none">
+                    GOBIERNO DEL ESTADO
+                  </div>
+                </div>
+              </div>
+
+              {/* Separador vertical */}
+              <div className="w-1 h-16 bg-gradient-to-b from-blue-900 via-purple-600 to-blue-900 rounded-full"></div>
+
+              {/* Secretaría */}
+              <div>
+                <div className="text-blue-900 font-black text-xl leading-tight">
+                  SECRETARÍA
+                </div>
+                <div className="text-blue-900 font-black text-xl leading-tight">
+                  DE EDUCACIÓN
+                </div>
+                <div className="text-blue-900 font-black text-xl leading-tight">
+                  Y DEPORTE
+                </div>
+              </div>
+            </div>
+
+            {/* Título del sistema y botones */}
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <h1 className="text-2xl font-bold text-blue-900 flex items-center justify-end gap-2">
+                  <FileText className="w-6 h-6" />
+                  Sistema de Convenios SNTE
+                </h1>
+                <p className="text-blue-700 text-sm font-semibold mt-1">
+                  Departamento de Personal Magisterio | 1970 - 2025
+                </p>
+                <p className="text-blue-600 text-xs mt-1 italic">
+                  Aplicación creada y diseñada por: Lic. Agustín Flores C.
+                </p>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={exportToPDF}
+                  className="bg-blue-900 hover:bg-blue-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold"
+                >
+                  <Download className="w-4 h-4" />
+                  PDF
+                </button>
+                <button
+                  onClick={exportToExcel}
+                  className="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all text-sm font-semibold"
+                >
+                  <Download className="w-4 h-4" />
+                  Excel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Panel de Búsqueda */}
+        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <Filter className="w-5 h-5 text-blue-600" />
+            Filtros de Búsqueda
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Búsqueda por texto */}
+            <div className="relative">
+              <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar por palabra clave..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Búsqueda por Clave */}
+            <select
+              value={selectedClave}
+              onChange={(e) => setSelectedClave(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Todas las Claves</option>
+              {catalogoClaves.map(item => (
+                <option key={item.clave} value={item.clave}>
+                  {item.clave} - {item.concepto}
+                </option>
+              ))}
+            </select>
+
+            {/* Búsqueda por ID */}
+            <select
+              value={selectedId}
+              onChange={(e) => setSelectedId(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="">Todos los IDs</option>
+              {catalogoClaves.map(item => (
+                <option key={item.id} value={item.id}>
+                  ID {item.id} - {item.concepto}
+                </option>
+              ))}
+            </select>
+
+            {/* Rango de Fechas */}
+            <div className="flex gap-2">
+              <input
+                type="date"
+                value={dateRange.start}
+                onChange={(e) => setDateRange({...dateRange, start: e.target.value})}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Desde"
+              />
+              <input
+                type="date"
+                value={dateRange.end}
+                onChange={(e) => setDateRange({...dateRange, end: e.target.value})}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                placeholder="Hasta"
+              />
+            </div>
+          </div>
+
+          {/* Botones de vista */}
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => setViewMode('search')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                viewMode === 'search' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              Vista de Búsqueda
+            </button>
+            <button
+              onClick={() => setViewMode('timeline')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                viewMode === 'timeline' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Clock className="w-4 h-4 inline mr-2" />
+              Línea de Tiempo
+            </button>
+            <button
+              onClick={() => setViewMode('upload')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                viewMode === 'upload' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              <Upload className="w-4 h-4 inline mr-2" />
+              Subir Documentos
+            </button>
+          </div>
+        </div>
+
+        {/* Resultados */}
+        {viewMode === 'search' && (
+          <div className="grid gap-6">
+            {filteredData.length === 0 ? (
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+                <Info className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-600 mb-2">No se encontraron resultados</h3>
+                <p className="text-gray-500">Intenta ajustar los filtros de búsqueda</p>
+              </div>
+            ) : (
+              filteredData.map(item => (
+                <div key={item.id} className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all">
+                  <div className="bg-gradient-to-r from-blue-600 to-green-600 p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                          <span className="text-white font-bold text-lg">ID {item.id}</span>
+                        </div>
+                        <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg">
+                          <span className="text-white font-bold text-lg">Clave {item.clave}</span>
+                        </div>
+                      </div>
+                      <h3 className="text-2xl font-bold text-white">{item.concepto}</h3>
+                    </div>
+                  </div>
+
+                  <div className="p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                      <TrendingUp className="w-5 h-5 text-green-600" />
+                      <span className="text-sm font-semibold text-gray-700">
+                        {item.convenios.length} Convenios Históricos
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {item.convenios.map((convenio, idx) => (
+                        <div
+                          key={idx}
+                          className="border-l-4 border-blue-500 bg-gray-50 p-4 rounded-r-lg hover:bg-blue-50 transition-all cursor-pointer"
+                          onClick={() => setSelectedConvenio({...convenio, concepto: item.concepto, clave: item.clave})}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <Calendar className="w-4 h-4 text-blue-600" />
+                                <span className="font-semibold text-blue-900">
+                                  {new Date(convenio.fecha).toLocaleDateString('es-MX', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric' 
+                                  })}
+                                </span>
+                                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                  Cláusula {convenio.clausula}
+                                </span>
+                                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
+                                  {convenio.monto}
+                                </span>
+                              </div>
+                              <p className="text-gray-700 text-sm leading-relaxed">{convenio.descripcion}</p>
+                              {convenio.detalle && (
+                                <p className="text-gray-500 text-xs mt-2 italic">{convenio.detalle}</p>
+                              )}
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 ml-4" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Vista de Subida de Documentos */}
+        {viewMode === 'upload' && (
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <Upload className="w-7 h-7 text-blue-600" />
+              Gestión de Documentos
+            </h2>
+
+            {/* Zona de arrastrar y soltar */}
+            <div
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              className={`border-4 border-dashed rounded-2xl p-12 text-center transition-all ${
+                isDragging 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50'
+              }`}
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className="bg-blue-100 p-6 rounded-full">
+                  <Upload className="w-12 h-12 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-2">
+                    Arrastra y suelta tus archivos aquí
+                  </h3>
+                  <p className="text-gray-600 mb-4">
+                    o haz clic para seleccionar archivos
+                  </p>
+                  <label className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg cursor-pointer inline-block transition-all font-semibold">
+                    Seleccionar Archivos
+                    <input
+                      type="file"
+                      multiple
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+                <p className="text-sm text-gray-500">
+                  Formatos aceptados: PDF, Word (.doc, .docx) | Máximo 10MB por archivo
+                </p>
+              </div>
+            </div>
+
+            {/* Lista de archivos subidos */}
+            {uploadedFiles.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <File className="w-5 h-5 text-blue-600" />
+                  Archivos Subidos ({uploadedFiles.length})
+                </h3>
+                <div className="space-y-3">
+                  {uploadedFiles.map(file => (
+                    <div
+                      key={file.id}
+                      className="bg-gradient-to-r from-green-50 to-blue-50 p-4 rounded-xl flex items-center justify-between hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center gap-4 flex-1">
+                        <div className={`p-3 rounded-lg ${
+                          file.type === 'PDF' 
+                            ? 'bg-red-100' 
+                            : 'bg-blue-100'
+                        }`}>
+                          <FileText className={`w-6 h-6 ${
+                            file.type === 'PDF' 
+                              ? 'text-red-600' 
+                              : 'text-blue-600'
+                          }`} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-gray-800">{file.name}</h4>
+                          <div className="flex gap-4 text-sm text-gray-600 mt-1">
+                            <span className="flex items-center gap-1">
+                              <File className="w-3 h-3" />
+                              {file.type}
+                            </span>
+                            <span>{file.size}</span>
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {file.uploadDate}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5 text-green-600" />
+                          <span className="text-green-600 font-semibold text-sm">Subido</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeFile(file.id)}
+                        className="ml-4 bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-all"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Botones de acción para archivos */}
+                <div className="mt-6 flex gap-3">
+                  <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-all flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Procesar Documentos ({uploadedFiles.length})
+                  </button>
+                  <button 
+                    onClick={() => setUploadedFiles([])}
+                    className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition-all"
+                  >
+                    Limpiar Todo
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Información adicional */}
+            <div className="mt-8 bg-blue-50 border-l-4 border-blue-600 p-4 rounded-r-lg">
+              <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                <Info className="w-5 h-5" />
+                Instrucciones
+              </h4>
+              <ul className="text-sm text-blue-800 space-y-1 ml-7 list-disc">
+                <li>Los documentos PDF y Word serán procesados automáticamente</li>
+                <li>El sistema extraerá la información de convenios, fechas y cláusulas</li>
+                <li>Los datos se integrarán a la base de datos de consulta</li>
+                <li>Puedes subir múltiples archivos a la vez</li>
+                <li>Formatos compatibles: .pdf, .doc, .docx</li>
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Vista de Línea de Tiempo */}
+        {viewMode === 'timeline' && (
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              <Clock className="w-7 h-7 text-blue-600" />
+              Línea de Tiempo de Convenios
+            </h2>
+            
+            {filteredData.map(item => (
+              <div key={item.id} className="mb-10">
+                <h3 className="text-xl font-bold text-blue-900 mb-4 flex items-center gap-2">
+                  <span className="bg-blue-100 px-3 py-1 rounded-lg">Clave {item.clave}</span>
+                  {item.concepto}
+                </h3>
+                
+                <div className="relative border-l-4 border-blue-300 pl-8 space-y-6">
+                  {item.convenios.sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).map((convenio, idx) => (
+                    <div key={idx} className="relative">
+                      <div className="absolute -left-10 w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-lg"></div>
+                      <div className="bg-gradient-to-r from-blue-50 to-white p-5 rounded-lg shadow hover:shadow-md transition-all">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-lg font-bold text-blue-900">
+                            {new Date(convenio.fecha).getFullYear()}
+                          </span>
+                          <span className="text-sm text-gray-600">
+                            {new Date(convenio.fecha).toLocaleDateString('es-MX', { month: 'long', day: 'numeric' })}
+                          </span>
+                          <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold ml-auto">
+                            {convenio.monto}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 font-medium">{convenio.descripcion}</p>
+                        {convenio.detalle && (
+                          <p className="text-gray-500 text-sm mt-2">{convenio.detalle}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Modal de Detalle */}
+        {selectedConvenio && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="bg-gradient-to-r from-blue-600 to-green-600 p-6 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-2xl font-bold">{selectedConvenio.concepto}</h3>
+                  <button
+                    onClick={() => setSelectedConvenio(null)}
+                    className="bg-white/20 hover:bg-white/30 rounded-lg p-2 transition-all"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <span className="bg-white/20 px-3 py-1 rounded-lg text-sm">
+                    Clave {selectedConvenio.clave}
+                  </span>
+                  <span className="bg-white/20 px-3 py-1 rounded-lg text-sm">
+                    Cláusula {selectedConvenio.clausula}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Fecha</label>
+                  <p className="text-lg text-gray-900 mt-1">
+                    {new Date(selectedConvenio.fecha).toLocaleDateString('es-MX', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Monto/Beneficio</label>
+                  <p className="text-2xl font-bold text-green-600 mt-1">{selectedConvenio.monto}</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Descripción</label>
+                  <p className="text-gray-800 mt-2 leading-relaxed">{selectedConvenio.descripcion}</p>
+                </div>
+
+                {selectedConvenio.detalle && (
+                  <div>
+                    <label className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Detalles Adicionales</label>
+                    <p className="text-gray-700 mt-2 leading-relaxed bg-blue-50 p-4 rounded-lg">
+                      {selectedConvenio.detalle}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 mt-12 py-6">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-sm">
+            Sistema de Consulta de Convenios SNTE - Gobierno del Estado de Chihuahua
+          </p>
+          <p className="text-xs text-gray-500 mt-1">
+            Departamento de Personal Magisterio | Acceso Restringido
+          </p>
+          <p className="text-xs text-gray-400 mt-2 italic">
+            Aplicación creada y diseñada por: Lic. Agustín Flores C.
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default ConveniosSNTEApp;
